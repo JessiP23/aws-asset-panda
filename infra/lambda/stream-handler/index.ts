@@ -20,7 +20,10 @@ export const handler = async (event: DynamoDBStreamEvent) => {
                     Detail: JSON.stringify({
                         recordKey: record.dynamodb?.Keys,
                         oldStatus,
-                        newStatus
+                        newStatus,
+                        assetSK: record.dynamodb?.Keys?.SK?.S,
+                        attributes: record.dynamodb?.NewImage?.attributes,
+                        photoUrl: record.dynamodb?.NewImage?.photoUrl?.S ?? null,
                     })
                 }]
             }))
