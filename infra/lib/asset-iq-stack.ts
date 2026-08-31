@@ -40,8 +40,10 @@ export class AssetIqStack extends cdk.Stack {
 
         const streamDql = new sqs.Queue(this, 'StreamDlq');
 
+        const lambdaEntry = (name: string) => `lambda/${name}/index.ts`;
+
         const streamHandler = new nodejs.NodejsFunction(this, 'StreamHandler', {
-            entry: '../lambda/stream-handler/index.ts',
+            entry: lambdaEntry('stream-handler'),
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_20_X,
         });
@@ -59,7 +61,7 @@ export class AssetIqStack extends cdk.Stack {
         }));
 
         const maintenanceConsumer = new nodejs.NodejsFunction(this, 'MaintenanceConsumer', {
-            entry: '../lambda/maintenance-consumer/index.ts',
+            entry: lambdaEntry('maintenance-consumer'),
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_20_X,
             environment: { TABLE_NAME: table.tableName },
