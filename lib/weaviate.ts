@@ -1,5 +1,38 @@
+import { existsSync } from "fs";
+import { resolve } from "path";
 import weaviate, { ApiKey, Filters, generateUuid5, type WeaviateClient } from "weaviate-client";
 import { EMBEDDING_MODEL, contentHash, embed, embedMany } from "@/lib/embeddings";
+
+function loadLocalEnv() {
+    if (typeof process.loadEnvFile !== "function") return;
+    let dir = process.cwd();
+    for (let i = 0; i < 6; i++) {
+        const local = resolve(dir, ".env.local");
+        const file = resolve(dir, ".env");
+        if (existsSync(local) || existsSync(file)) {
+            if (existsSync(local)) process.loadEnvFile(local);
+            if (existsSync(file)) process.loadEnvFile(file);
+            return;
+        }
+        const parent = resolve(dir, "..");
+        if (parent === dir) return;
+        dir = parent;
+    }
+}
+
+function env(name: string): string | undefined {
+    const raw = process.env[name]?.trim();
+    if (!raw) return undefined;
+    if (
+        (raw.startsWith('"') && raw.endsWith('"')) ||
+        (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+        return raw.slice(1, -1).trim();
+    }
+    return raw;
+}
+
+loadLocalEnv();
 
 export type VectorDocument = {
     id?: string;
@@ -16,14 +49,14 @@ export type VectorHit = {
     kind?: string;
 };
 
-const COLLECTION = process.env.WEAVIATE_COLLECTION!;
+const COLLECTION = env("WEAVIATE_COLLECTION") ?? "AssetEmbeddingMinilmV2";
 
 let clientPromise: Promise<WeaviateClient> | null = null;
 let collectionReady: Promise<void> | null = null;
 
 function clusterUrl(): string {
-    const raw = process.env.WEAVIATE_URL?.trim();
-    const key = process.env.WEAVIATE_API_KEY?.trim();
+    const raw = env("WEAVIATE_URL");
+    const key = env("WEAVIATE_API_KEY");
     if (!raw || !key) {
         throw new Error("WEAVIATE_URL and WEAVIATE_API_KEY are required");
     }
@@ -32,8 +65,12 @@ function clusterUrl(): string {
 
 async function getClient(): Promise<WeaviateClient> {
     if (!clientPromise) {
+        const key = env("WEAVIATE_API_KEY");
+        if (!key) {
+            throw new Error("WEAVIATE_URL and WEAVIATE_API_KEY are required");
+        }
         clientPromise = weaviate.connectToWeaviateCloud(clusterUrl(), {
-            authCredentials: new ApiKey(process.env.WEAVIATE_API_KEY!.trim()),
+            authCredentials: new ApiKey(key),
             skipInitChecks: true,
         });
     }
@@ -48,7 +85,7 @@ async function ensureCollection(): Promise<void> {
             await client.collections.create({
                 name: COLLECTION,
                 vectorizers: weaviate.configure.vectors.selfProvided({
-                    vectorIndexConfig: weaviate.configure.vectorIndex.hnsw({
+                    vectorIndexConfig: weaviate.configure.vectorIndex.hfresh({
                         distanceMetric: "cosine",
                     }),
                 }),
