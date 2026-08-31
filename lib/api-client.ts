@@ -1,6 +1,6 @@
 // Every fetch call goes through here. 
 
-import type { AssetRecord, NotificationItem, DualSearchResponse, AgentResponse, PhotoGradeResult } from "./types";
+import type { AssetRecord, NotificationItem, DualSearchResponse, AgentResponse, PhotoGradeResult, EmbeddingDebugResponse } from "./types";
 
 async function apiGet<T>(path: string): Promise<T> {
     const res = await fetch(path);
@@ -70,6 +70,9 @@ export const getNotifications = (tenantId: string) => apiGet<NotificationItem[]>
 
 // ---- Search ----
 export const searchAssets = (query: string, tenantId: string) => apiPost<DualSearchResponse>('/api/search', { query, tenantId });
+
+export const debugEmbed = (text: string, opts?: { tenantId?: string; index?: boolean }) =>
+    apiPost<EmbeddingDebugResponse>('/api/embed-debug', { text, ...opts });
 
 // ---- Chat (RAG) ----
 export const sendChatMessage = (question: string) => apiPost<{ answer: string }>('/api/chat', { question });

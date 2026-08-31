@@ -49,7 +49,10 @@ export default function DashboardPage() {
     <main className="max-w-4xl mx-auto p-8 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">AssetIQ</h1>
-        <TenantSwitcher tenants={TENANTS} value={tenantId} onChange={(id) => { setTenantId(id); setSelectedAsset(null); }} />
+        <div className="flex items-center gap-4">
+          <a href="/search-lab" className="text-sm text-blue-600">Search lab</a>
+          <TenantSwitcher tenants={TENANTS} value={tenantId} onChange={(id) => { setTenantId(id); setSelectedAsset(null); }} />
+        </div>
       </div>
 
       <section>

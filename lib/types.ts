@@ -34,6 +34,18 @@ export interface DualSearchResponse {
     weaviate: SearchEngineResult;
 }
 
+export interface EmbeddingDebugResponse {
+    dimensions: number;
+    model: string;
+    preview: number[];
+    embedMs: number;
+    roundtrip?: {
+        id: string;
+        topScore: number;
+        hitText: string;
+    };
+}
+
 export interface ChatTurn {
     role: 'user' | 'assistant';
     content: string;
