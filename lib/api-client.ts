@@ -47,15 +47,17 @@ export const createAsset = (input: { tenantId: string; groupId: string; status?:
 
 export const updateAssetStatus = (recordKey: { PK: string, SK: string }, status: string) => apiPatch<{ ok: true }>('/api/assets', { ...recordKey, status });
 
+export const updateAssetPhoto = (recordKey: { PK: string; SK: string }, photoUrl: string) =>
+    apiPatch<{ ok: true }>("/api/assets", { ...recordKey, photoUrl });
+
 // ----- Photos ----
 export const getUploadUrl = (contentType: string) => apiPost<{ uploadUrl: string; key: string }>('/api/upload-url', { contentType });
 
 export async function uploadfileDirectToS3(file: File, uploadUrl: string): Promise<void> {
+    const contentType = file.type || "application/octet-stream";
     const res = await fetch(uploadUrl, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": contentType },
         body: file,
     });
     if (!res.ok) {

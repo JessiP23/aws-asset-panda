@@ -1,6 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
-import { DetailType } from "aws-cdk-lib/aws-codestarnotifications";
 
 type AssetStatusChangeDetail = {
     recordKey: { 

@@ -12,9 +12,14 @@ export function PhotoUploader({ onUploaded, label = "Upload Photo" }: Props) {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
 
     const handleFile = async (file: File) => {
+        const contentType = file.type || "application/octet-stream";
+        if (!contentType.startsWith("image/")) {
+            setStatus("error");
+            return;
+        }
         setStatus('uploading');
         try {
-            const {uploadUrl, key} = await getUploadUrl(file.type);
+            const { uploadUrl, key } = await getUploadUrl(contentType);
             await uploadfileDirectToS3(file, uploadUrl);
             setStatus('done');
             onUploaded(key);
